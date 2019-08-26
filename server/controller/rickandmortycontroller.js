@@ -1,5 +1,6 @@
 const data = require("../data.json");
 let characterId = 22;
+let character = [];
 
 module.exports = {
 	getAllCharacters: (req, res, next) => {
@@ -17,11 +18,11 @@ module.exports = {
 		}
 	},
 	postCharacter: (req, res, next) => {
-		const { character, characterImage, species, episode } = req.body;
+		const { name, image, species, episode } = req.body;
 		const newCharacter = {
 			id: characterId++,
-			character,
-			characterImage,
+			name,
+			image,
 			species,
 			episode
 		};
@@ -30,7 +31,7 @@ module.exports = {
 	},
 	putCharacter: (req, res, next) => {
 		const { id } = req.params;
-		const { update_character } = req.query;
+		const { update_character } = req.body;
 		const index = data.findIndex((character) => {
 			return character.id === parseInt(id);
 		});
@@ -43,15 +44,27 @@ module.exports = {
 	},
 
 	removeCharacter: (req, res, next) => {
-		const { character, characterImage, species, episode } = req.body;
-		const removeCharacter = {
-			id: characterId,
-			character,
-			characterImage,
-			species,
-			episode
+		const { id } = req.params;
+		const index = data.findIndex((character) => {
+			return character.id === parseInt(id);
+		});
+		if (index !== -1) {
+			data.splice(index, 1);
+		}
+		console.log(id, index);
+		res.status(200).send(data);
+	},
+	updateCharacter(req, res) {
+		let index = null;
+		character.forEach((character, i) => {
+			if (character.id === Number(req.params.id)) index = i;
+		});
+		character[index] = {
+			name: req.body.name || character[index].name,
+			species: req.body.species || character[index].species,
+			// episode: req.body.episode || character[index].episode,
+			image: req.body.image || character[index].image
 		};
-		data.slice(removeCharacter);
 		res.status(200).send(data);
 	}
 };

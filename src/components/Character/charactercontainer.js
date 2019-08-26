@@ -1,23 +1,27 @@
 import React, { Component } from "react";
 import axios from "axios";
+import Update from "../update/Update";
 
 export default class CharacterContainer extends Component {
 	constructor() {
 		super();
+
 		this.state = {
 			addCharacter: [],
 			id: 1,
-			characterName: "",
-			characterImage: "",
-			episode: "",
-			species: ""
+			name: "",
+			image: "",
+			episode: [],
+			species: "",
+			episodeUrls: []
 		};
+		this.submitCharacter = this.submitCharacter.bind(this);
+		this.removeCharacter = this.removeCharacter.bind(this);
 	}
 
 	componentDidMount() {
 		axios.get("/api/getswifty").then((response) => {
-			console.log(response.data);
-			this.setState({ character: response.data });
+			this.setState({ addCharacter: response.data });
 			console.log(response.data);
 		});
 	}
@@ -29,33 +33,40 @@ export default class CharacterContainer extends Component {
 	}
 
 	submitCharacter() {
-		const { character, characterImage, episode, species } = this.state;
-		const newCharacter = { character, characterImage, episode, species };
+		const { name, image, episode, species } = this.state;
+		const newCharacter = { name, image, episode, species };
 
-		axios.post("/api/simplerick", newCharacter).then((response) => {
-			this.setState({
-				addCharacter: response.data
+		axios
+			.post("http://localhost:3000/api/simplerick/:id", newCharacter)
+			.then((response) => {
+				this.setState({
+					addCharacter: response.data,
+					name: "",
+					image: "",
+					episode: [],
+					species: "",
+					episodeUrls: []
+				});
 			});
-		});
+	}
+
+	removeCharacter(id) {
+		axios
+			.delete(`http://localhost:3000/api/armyofricks/${id}`)
+			.then((response) => {
+				this.setState({ addCharacter: response.data });
+			});
 	}
 
 	render() {
-		const { id, character, characterImage, episode, species } = this.state;
-		const mappedCharacterList = addcharacter.map((character) => {
+		const { addCharacter, id, name, image, episode, species } = this.state;
+		const mappedCharacterList = addCharacter.map((character) => {
 			return (
-				<div key={character.id}>
-					<div>{character.characterName}</div>
-					<div>{character.episode}</div>
-					<div>{character.species}</div>
-					<div>
-						<img src={character.characterImage} />
-					</div>
-				</div>
+				<Update character={character} removeCharacter={this.removeCharacter} />
 			);
 		});
-
 		return (
-			<div>
+			<div className="background">
 				<div>
 					<form
 						onSubmit={(event) => {
@@ -63,7 +74,7 @@ export default class CharacterContainer extends Component {
 							this.submitCharacter();
 						}}
 					>
-						<imput
+						<input
 							placeholder="ID"
 							onChange={(event) =>
 								this.universalInput("id", event.target.value)
@@ -73,35 +84,38 @@ export default class CharacterContainer extends Component {
 						<input
 							placeholder="characterName"
 							onChange={(event) =>
-								this.universalInput("characterName", event.target.value)
+								this.universalInput("name", event.target.value)
 							}
-							value={character}
+							value={name}
 						/>
 						<input
 							placeholder="CharacterImage"
 							onChange={(event) =>
-								this.universalInput("characterImage", event.target.value)
+								this.universalInput("image", event.target.value)
 							}
-							value={characterImage}
+							value={image}
 						/>
 						<input
 							placeholder="Episode"
 							onChange={(event) =>
-								this.universalInput("episode", event.target.value)
+								this.setState({
+									episode: [event.target.value]
+								})
 							}
 							value={episode}
 						/>
 						<input
 							placeholder="Species"
 							onChange={(event) =>
-								this.universalInput("Species", event.target.value)
+								this.universalInput("species", event.target.value)
 							}
 							value={species}
 						/>
-						<button>Add User</button>
+
+						<button>{this.addCharacter}Add Dimension</button>
 					</form>
 
-					<div> {mappedCharacterList}</div>
+					<div className="character"> {mappedCharacterList}</div>
 				</div>
 			</div>
 		);
